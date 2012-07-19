@@ -37,15 +37,30 @@ FROM
         JOIN
     /** join against table where the elemement is a successful submit (5) and the packet type is next (3) **/
     config.elements AS e ON e.element_id = lt.element_id AND e.element_type_id = 5 AND lt.packet_type_id = 3
+    -- finding all lead transactions with the same session_id, element_id and packet type 
+    -- and that is successful.
+    -- by doing left join . we are sayin 
+    -- out of all the failed transactions, if there is a successful transaction then exclude it
+    -- this happens when the user hits refresh multiple times.
+    LEFT JOIN lead_transactions AS lt_success
+    ON lt_success.lead_id = lt.lead_id
+    AND lt_success.session_id = lt.session_id
+    AND lt_success.element_id = lt.element_id
+    AND lt_success.packet_type_id = lt.packet_type_id
+    AND lt_success.third_party_response_system_code = '000'
+    -- if the success came before the fail - dont include the fail
+    AND lt_success.lead_transaction_id < lt.lead_transaction_id
 WHERE
-    (${input_partner_component_id} is null OR lt.destination_partner_component_id = ${input_partner_component_id})
-    and (${input_campaign_id} is null OR l.campaign_id = ${input_campaign_id})    
-    and (${input_subid} is null OR l.subid = ${input_subid})
-    -- changed lt.created_date to lt.transaction_timestamp BC and concatenating for same day reports
-    and DATE(lt.transaction_timestamp) between ${input_from_date} AND ${input_to_date}
+   (${input_partner_component_id} is null OR lt.destination_partner_component_id = ${input_partner_component_id})
+     and (${input_campaign_id} is null OR l.campaign_id = ${input_campaign_id})    
+     and (${input_subid} is null OR l.subid = ${input_subid})
+     -- changed lt.created_date to lt.transaction_timestamp BC and concatenating for same day reports
+     and DATE(lt.transaction_timestamp) between ${input_from_date} AND ${input_to_date}
     -- Only get the vendors and clients that are active
-    and pc.is_active = 1 AND pc_dest.is_active = 1 
+     and pc.is_active = 1 AND pc_dest.is_active = 1 
     -- 000 is not success and the party response is not null or 0
     AND lt.third_party_response_system_code != '000' AND CHAR_LENGTH(lt.third_party_response_system_code) > 0
+-- not successful transaction - related to left join
+AND lt_success.lead_transaction_id IS NULL
 GROUP BY l.lead_id , pd.person_detail_id
 ORDER BY pc.partner_component_id , lt.transaction_timestamp DESC , pd.lead_id DESC
