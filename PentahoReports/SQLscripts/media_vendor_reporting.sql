@@ -12,7 +12,7 @@ act1.partner_component_name as "Media Vendor",
 act1.campaign_name as "Campaign Name",
 act1.campaign_id as "Campaign ID",
 act1.vertical_name as "Vertical Name",
-act1.account_manager_name as "Account Manager",
+CONCAT(LEFT(act1.account_manager_name, INSTR(act1.account_manager_name,' ')), SUBSTRING(act1.account_manager_name, INSTR(act1.account_manager_name, ' ') + 1, 1)) as "Account Manager",
 act1.account_manager_id,
 -- this is related to the left join being done, since we may get null values and dont want to retreive null.
 sum(ifnull(act2.client_conversions,0)) as "Client Conversions",
@@ -59,4 +59,6 @@ join report.aggregate_campaign_subid_transactions as act on act.account_manager_
 where u.email like ${logged_in_user})
 	END
 group by 
-act1.partner_component_id
+act1.partner_component_name asc
+
+

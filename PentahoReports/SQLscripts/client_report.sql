@@ -3,7 +3,7 @@
 select 
     partner_component_name as 'Client',
     partner_component_id as 'Client ID',
-    account_manager_name as 'Account Manager',
+    CONCAT(LEFT(account_manager_name, INSTR(account_manager_name,' ')), SUBSTRING(account_manager_name, INSTR(account_manager_name, ' ') + 1, 1)) as "Account Manager",
     round(current_rate,2) as 'Current Sale Price',
     sum(client_conversions) as 'Sales',
     sum(client_conversions) * current_rate as 'Total Sales Revenue',
