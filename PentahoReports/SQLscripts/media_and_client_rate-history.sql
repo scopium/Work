@@ -31,6 +31,6 @@ JOIN cti_common.campaigns AS c
 					END
 WHERE 
 pc.vertical_id = ${input_vertical_id}
-AND ccd.campaign_client_start_date BETWEEN ${input_from_date} AND ${input_to_date}
+AND ccd.campaign_client_start_date <= ${input_to_date}
 GROUP BY current_rate, ccd.campaign_client_start_date
 ORDER BY ccd.campaign_client_start_date DESC;
